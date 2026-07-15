@@ -1,3 +1,23 @@
+## 🚀 What's New in This Fork
+
+### ✨ Interactive AI Features
+
+This fork adds three interactive AI-powered features that work entirely offline using the bundled `llama-helper` engine with Metal GPU acceleration:
+
+**📝 Real-Time Meeting Notes** — Markdown note-taking during live meetings in a dedicated sidebar panel. Notes auto-save to the local SQLite database and appear in a dedicated **Notes** tab after the meeting, fully editable.
+
+**💬 Live Q&A During Meetings** — Ask questions about the last 10 minutes of the live transcript. Powered by the local LLM — no cloud APIs. Chat messages persist with session-based history: switch between chats, start new ones, or delete old sessions.
+
+**🔍 Post-Meeting Q&A** — Ask questions about the complete meeting transcript and notes combined. Full chat history with New Chat, session tabs, and delete.
+
+**🛠 Built on:** `llama-helper --mode chat` (stdin/stdout JSON protocol), new SQLite tables for notes and chat history, all offline with Apple Metal GPU.
+
+### 🙏 Acknowledgments
+
+This fork builds upon the incredible work of **[Sujith S](https://github.com/Zackriya-Solutions)** and all [contributors](https://github.com/Zackriya-Solutions/meeting-minutes/graphs/contributors) to the original [Meetily](https://github.com/Zackriya-Solutions/meeting-minutes) project.
+
+---
+
 <div align="center" style="border-bottom: none">
     <h1>
         <img src="docs/Meetily-6.png" style="border-radius: 10px;" />
@@ -45,26 +65,6 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 ---
 
 > **Meetily PRO Upgrade Offer** - Meetily PRO is available for users who need enhanced accuracy, advanced exports, custom summary workflows, and team-ready features. Use coupon code **LAUNCH20** for **20% off** until the next Meetily Community Edition release. Speaker diarization is also planned for PRO in mid-June. [Explore Meetily PRO →](https://meetily.ai/pro/)
-
----
-
-## 🚀 What's New in This Fork
-
-### ✨ Interactive AI Features
-
-This fork adds three interactive AI-powered features that work entirely offline using the bundled `llama-helper` engine with Metal GPU acceleration:
-
-**📝 Real-Time Meeting Notes** — Markdown note-taking during live meetings in a dedicated sidebar panel. Notes auto-save to the local SQLite database and appear in a dedicated **Notes** tab after the meeting, fully editable.
-
-**💬 Live Q&A During Meetings** — Ask questions about the last 10 minutes of the live transcript. Powered by the local LLM — no cloud APIs. Chat messages persist with session-based history: switch between chats, start new ones, or delete old sessions.
-
-**🔍 Post-Meeting Q&A** — Ask questions about the complete meeting transcript and notes combined. Full chat history with New Chat, session tabs, and delete.
-
-**🛠 Built on:** `llama-helper --mode chat` (stdin/stdout JSON protocol), new SQLite tables for notes and chat history, all offline with Apple Metal GPU.
-
-### 🙏 Acknowledgments
-
-This fork builds upon the incredible work of **[Sujith S](https://github.com/Zackriya-Solutions)** and all [contributors](https://github.com/Zackriya-Solutions/meeting-minutes/graphs/contributors) to the original [Meetily](https://github.com/Zackriya-Solutions/meeting-minutes) project.
 
 ---
 

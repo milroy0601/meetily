@@ -48,18 +48,33 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 
 ---
 
+## 🚀 What's New in This Fork
+
+### ✨ Interactive AI Features
+
+This fork adds three interactive AI-powered features that work entirely offline using the bundled `llama-helper` engine with Metal GPU acceleration:
+
+**📝 Real-Time Meeting Notes** — Markdown note-taking during live meetings in a dedicated sidebar panel. Notes auto-save to the local SQLite database and appear in a dedicated **Notes** tab after the meeting, fully editable.
+
+**💬 Live Q&A During Meetings** — Ask questions about the last 10 minutes of the live transcript. Powered by the local LLM — no cloud APIs. Chat messages persist with session-based history: switch between chats, start new ones, or delete old sessions.
+
+**🔍 Post-Meeting Q&A** — Ask questions about the complete meeting transcript and notes combined. Full chat history with New Chat, session tabs, and delete.
+
+**🛠 Built on:** `llama-helper --mode chat` (stdin/stdout JSON protocol), new SQLite tables for notes and chat history, all offline with Apple Metal GPU.
+
+### 🙏 Acknowledgments
+
+This fork builds upon the incredible work of **[Sujith S](https://github.com/Zackriya-Solutions)** and all [contributors](https://github.com/Zackriya-Solutions/meeting-minutes/graphs/contributors) to the original [Meetily](https://github.com/Zackriya-Solutions/meeting-minutes) project.
+
+---
+
 <details>
 <summary>Table of Contents</summary>
 
+- [🚀 What's New in This Fork](#-whats-new-in-this-fork)
 - [Introduction](#introduction)
 - [Why Meetily?](#why-meetily)
 - [Features](#features)
-- [🙏 Acknowledgments](#-acknowledgments)
-- [✨ Interactive AI Features (Fork Additions)](#-interactive-ai-features-fork-additions)
-  - [📝 Real-Time Meeting Notes](#-real-time-meeting-notes)
-  - [💬 Live Q\&A During Meetings](#-live-qa-during-meetings)
-  - [🔍 Post-Meeting Q\&A](#-post-meeting-qa)
-  - [🛠 Architecture Notes](#-architecture-notes)
 - [Installation](#installation)
   - [🪟 **Windows**](#-windows)
   - [🍎 **macOS**](#-macos)
@@ -121,35 +136,6 @@ Whether you're a defense consultant, enterprise executive, legal professional, o
 - **Multi-Platform:** Works on macOS, Windows, and Linux.
 - **Open Source:** Meetily is open source and free to use.
 - **Flexible AI Provider Support:** Choose from Ollama (local), Claude, Groq, OpenRouter, or use your own OpenAI-compatible endpoint.
-
-## 🙏 Acknowledgments
-
-This fork builds upon the incredible work of **[Sujith S](https://github.com/Zackriya-Solutions)** and all [contributors](https://github.com/Zackriya-Solutions/meeting-minutes/graphs/contributors) to the original [Meetily](https://github.com/Zackriya-Solutions/meeting-minutes) project. Thank you for creating this privacy-first meeting assistant and making it open source — it's a remarkable foundation that makes features like the ones below possible.
-
-## ✨ Interactive AI Features (Fork Additions)
-
-This fork adds three interactive AI-powered features that work entirely offline using the bundled `llama-helper` engine with Metal GPU acceleration:
-
-### 📝 Real-Time Meeting Notes
-- **Markdown note-taking** during live meetings in a dedicated sidebar panel
-- Notes auto-save to the local SQLite database with debounced persistence
-- After the meeting, notes appear in a dedicated **Notes** tab alongside Summary and Q&A, fully editable
-
-### 💬 Live Q&A During Meetings
-- Ask questions about the **last 10 minutes** of the live transcript using a rolling context buffer
-- Powered by the local LLM (`llama-helper` with `--mode chat`) — no cloud APIs required
-- Chat messages persist to SQLite with **session-based history**: switch between previous chats, start new chats, or delete old sessions
-
-### 🔍 Post-Meeting Q&A
-- Ask questions about the **complete meeting transcript and notes** combined
-- Full chat session history with **New Chat**, session tabs, and delete functionality
-- All inference runs locally via the bundled native LLM engine
-
-### 🛠 Architecture Notes
-- `llama-helper` binary extended with `--mode chat` for interactive context+question inference via stdin/stdout JSON protocol
-- New SQLite tables: `meeting_custom_notes`, `meeting_chat_messages` (session-based chat history)
-- Uses the existing `meeting_notes` table for single-document markdown notes
-- All features work offline with Apple Metal GPU acceleration
 
 ## Installation
 

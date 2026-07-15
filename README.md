@@ -12,7 +12,11 @@ This fork adds three interactive AI-powered features that work entirely offline 
 
 **🛠 Built on:** `llama-helper --mode chat` (stdin/stdout JSON protocol), new SQLite tables for notes and chat history, all offline with Apple Metal GPU.
 
-### 🙏 Acknowledgments
+### � Known Issues
+
+- **Summary editor responsiveness** — The BlockNote-based summary editor in the meeting details page is not scrollable via mouse/trackpad and does not fully adapt to the available panel width. Use arrow keys to navigate long summaries as a workaround.
+
+### �🙏 Acknowledgments
 
 This fork builds upon the incredible work of **[Sujith S](https://github.com/Zackriya-Solutions)** and all [contributors](https://github.com/Zackriya-Solutions/meeting-minutes/graphs/contributors) to the original [Meetily](https://github.com/Zackriya-Solutions/meeting-minutes) project.
 
@@ -72,6 +76,8 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 <summary>Table of Contents</summary>
 
 - [🚀 What's New in This Fork](#-whats-new-in-this-fork)
+  - [✨ Interactive AI Features](#-interactive-ai-features)
+  - [🙏 Acknowledgments](#-acknowledgments)
 - [Introduction](#introduction)
 - [Why Meetily?](#why-meetily)
 - [Features](#features)

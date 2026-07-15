@@ -276,3 +276,223 @@ pub async fn open_database_folder(app: AppHandle) -> Result<(), String> {
     info!("Opened database folder: {}", folder_path);
     Ok(())
 }
+
+// ============================================================================
+// Meeting Custom Notes Commands
+// ============================================================================
+
+/// Save a custom note for a meeting during live recording
+#[tauri::command]
+pub async fn save_meeting_note(
+    app: AppHandle,
+    meeting_id: String,
+    timestamp: i64,
+    text: String,
+) -> Result<serde_json::Value, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_custom_notes::MeetingCustomNotesRepository;
+
+    let state = app
+        .state::<AppState>()
+        .inner();
+
+    let note = MeetingCustomNotesRepository::save_note(
+        state.db_manager.pool(),
+        &meeting_id,
+        timestamp,
+        &text,
+    )
+    .await
+    .map_err(|e| format!("Failed to save meeting note: {}", e))?;
+
+    Ok(serde_json::json!(note))
+}
+
+/// Get all custom notes for a meeting
+#[tauri::command]
+pub async fn get_meeting_notes(
+    app: AppHandle,
+    meeting_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_custom_notes::MeetingCustomNotesRepository;
+
+    let state = app
+        .state::<AppState>()
+        .inner();
+
+    let notes = MeetingCustomNotesRepository::get_notes_for_meeting(
+        state.db_manager.pool(),
+        &meeting_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to get meeting notes: {}", e))?;
+
+    Ok(notes
+        .into_iter()
+        .map(|n| serde_json::json!(n))
+        .collect())
+}
+
+/// Delete a specific meeting note by ID
+#[tauri::command]
+pub async fn delete_meeting_note(
+    app: AppHandle,
+    note_id: i64,
+) -> Result<(), String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_custom_notes::MeetingCustomNotesRepository;
+
+    let state = app
+        .state::<AppState>()
+        .inner();
+
+    MeetingCustomNotesRepository::delete_note(
+        state.db_manager.pool(),
+        note_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to delete meeting note: {}", e))?;
+
+    Ok(())
+}
+
+// ============================================================================
+// Meeting Markdown Notes Commands (single note per meeting, editable)
+// ============================================================================
+
+/// Save a markdown note for a meeting (upsert — one note per meeting)
+#[tauri::command]
+pub async fn save_meeting_markdown_note(
+    app: AppHandle,
+    meeting_id: String,
+    markdown: String,
+) -> Result<(), String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_markdown_notes::MeetingMarkdownNotesRepository;
+
+    let state = app.state::<AppState>().inner();
+
+    MeetingMarkdownNotesRepository::save_note(
+        state.db_manager.pool(),
+        &meeting_id,
+        &markdown,
+    )
+    .await
+    .map_err(|e| format!("Failed to save markdown note: {}", e))
+}
+
+/// Get the markdown note for a meeting
+#[tauri::command]
+pub async fn get_meeting_markdown_note(
+    app: AppHandle,
+    meeting_id: String,
+) -> Result<Option<String>, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_markdown_notes::MeetingMarkdownNotesRepository;
+
+    let state = app.state::<AppState>().inner();
+
+    MeetingMarkdownNotesRepository::get_note(
+        state.db_manager.pool(),
+        &meeting_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to get markdown note: {}", e))
+}
+
+// ============================================================================
+// Meeting Chat Commands (persistent chat history)
+// ============================================================================
+
+/// Save a chat message for a meeting
+#[tauri::command]
+pub async fn save_chat_message(
+    app: AppHandle,
+    meeting_id: String,
+    role: String,
+    content: String,
+    session_id: String,
+) -> Result<serde_json::Value, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_chat::MeetingChatRepository;
+
+    let state = app.state::<AppState>().inner();
+    let msg = MeetingChatRepository::save_message(
+        state.db_manager.pool(),
+        &meeting_id,
+        &role,
+        &content,
+        &session_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to save chat message: {}", e))?;
+
+    Ok(serde_json::json!(msg))
+}
+
+/// Get chat messages for a meeting session
+#[tauri::command]
+pub async fn get_chat_session_messages(
+    app: AppHandle,
+    meeting_id: String,
+    session_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_chat::MeetingChatRepository;
+
+    let state = app.state::<AppState>().inner();
+    let msgs = MeetingChatRepository::get_session_messages(
+        state.db_manager.pool(),
+        &meeting_id,
+        &session_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to get chat messages: {}", e))?;
+
+    Ok(msgs.into_iter().map(|m| serde_json::json!(m)).collect())
+}
+
+/// Get all chat sessions for a meeting
+#[tauri::command]
+pub async fn get_chat_sessions(
+    app: AppHandle,
+    meeting_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_chat::MeetingChatRepository;
+
+    let state = app.state::<AppState>().inner();
+    let sessions = MeetingChatRepository::get_sessions(
+        state.db_manager.pool(),
+        &meeting_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to get chat sessions: {}", e))?;
+
+    Ok(sessions
+        .into_iter()
+        .map(|(id, count)| serde_json::json!({ "session_id": id, "message_count": count }))
+        .collect())
+}
+
+/// Delete a chat session
+#[tauri::command]
+pub async fn delete_chat_session(
+    app: AppHandle,
+    meeting_id: String,
+    session_id: String,
+) -> Result<(), String> {
+    use crate::state::AppState;
+    use crate::database::repositories::meeting_chat::MeetingChatRepository;
+
+    let state = app.state::<AppState>().inner();
+    MeetingChatRepository::delete_session(
+        state.db_manager.pool(),
+        &meeting_id,
+        &session_id,
+    )
+    .await
+    .map_err(|e| format!("Failed to delete chat session: {}", e))
+}
+

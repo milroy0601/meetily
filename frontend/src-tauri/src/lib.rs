@@ -382,6 +382,62 @@ async fn set_language_preference(language: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Ask a question using the local LLM (llama-helper) with provided context.
+/// The `mode` parameter is reserved for future use (currently always "builtin-ai").
+/// The context should contain the transcript/notes the LLM should reference.
+#[tauri::command]
+async fn ask_llama<R: Runtime>(
+    app: AppHandle<R>,
+    mode: String,
+    context: String,
+    question: String,
+) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+
+    // Get the model config to determine which model to use
+    let db_state = app.state::<state::AppState>();
+    let pool = db_state.db_manager.pool();
+
+    let model_config = database::repositories::setting::SettingsRepository::get_model_config(pool)
+        .await
+        .map_err(|e| format!("Failed to get model config: {}", e))?;
+
+    let model_name = if let Some(ref config) = model_config {
+        if config.provider == "builtin-ai" && !config.model.is_empty() {
+            config.model.clone()
+        } else {
+            // Fall back to recommended model for this system
+            summary::summary_engine::commands::get_recommended_summary_model_for_current_system()
+                .unwrap_or("qwen3.5:2b")
+                .to_string()
+        }
+    } else {
+        summary::summary_engine::commands::get_recommended_summary_model_for_current_system()
+            .unwrap_or("qwen3.5:2b")
+            .to_string()
+    };
+
+    log_info!(
+        "ask_llama: mode={}, model={}, question_len={}, context_len={}",
+        mode,
+        model_name,
+        question.len(),
+        context.len()
+    );
+
+    summary::summary_engine::chat_client::ask_llama(
+        &app_data_dir,
+        &model_name,
+        &context,
+        &question,
+    )
+    .await
+    .map_err(|e| format!("LLM inference failed: {}", e))
+}
+
 // Internal helper function to get language preference (for use within Rust code)
 pub fn get_language_preference_internal() -> Option<String> {
     LANGUAGE_PREFERENCE.lock().ok().map(|lang| lang.clone())
@@ -692,6 +748,8 @@ pub fn run() {
             audio::recording_preferences::get_audio_backend_info,
             // Language preference commands
             set_language_preference,
+            // LLM chat command (local inference via llama-helper)
+            ask_llama,
             // Notification system commands
             notifications::commands::get_notification_settings,
             notifications::commands::set_notification_settings,
@@ -729,6 +787,18 @@ pub fn run() {
             // Database and Models path commands
             database::commands::get_database_directory,
             database::commands::open_database_folder,
+            // Meeting custom notes commands
+            database::commands::save_meeting_note,
+            database::commands::get_meeting_notes,
+            database::commands::delete_meeting_note,
+            // Meeting markdown note commands (single note per meeting)
+            database::commands::save_meeting_markdown_note,
+            database::commands::get_meeting_markdown_note,
+            // Chat history commands
+            database::commands::save_chat_message,
+            database::commands::get_chat_session_messages,
+            database::commands::get_chat_sessions,
+            database::commands::delete_chat_session,
             whisper_engine::commands::open_models_folder,
             // Onboarding commands
             onboarding::get_onboarding_status,

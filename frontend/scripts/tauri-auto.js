@@ -40,6 +40,17 @@ console.log(''); // Empty line for spacing
 const platform = os.platform();
 const env = { ...process.env };
 
+// Always use the stable llama-helper binary so cargo doesn't overwrite it
+const projectRoot = path.resolve(__dirname, '..', '..');
+const stableHelper = path.join(projectRoot, 'target', 'debug', 'llama-helper-stable');
+if (fs.existsSync(stableHelper)) {
+  env.MEETILY_LLAMA_HELPER = stableHelper;
+  console.log(`🦙 Using stable llama-helper: ${stableHelper}`);
+} else {
+  console.warn(`⚠️  Stable llama-helper not found at: ${stableHelper}`);
+  console.warn('   Run: cargo build -p llama-helper && cp target/debug/llama-helper target/debug/llama-helper-stable');
+}
+
 if (platform === 'linux' && feature === 'cuda') {
   console.log('🐧 Linux/CUDA detected: Setting CMAKE flags for NVIDIA GPU');
   env.CMAKE_CUDA_ARCHITECTURES = '75';

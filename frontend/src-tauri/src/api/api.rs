@@ -934,13 +934,15 @@ pub async fn api_save_transcript<R: Runtime>(
     transcripts: Vec<serde_json::Value>,
     folder_path: Option<String>,
     auth_token: Option<String>,
+    meeting_id: Option<String>,
 ) -> Result<serde_json::Value, String> {
     log_info!(
-        "api_save_transcript called for meeting: {}, transcripts: {}, folder_path: {:?}, auth_token: {}",
+        "api_save_transcript called for meeting: {}, transcripts: {}, folder_path: {:?}, auth_token: {}, meeting_id: {:?}",
         meeting_title,
         transcripts.len(),
         folder_path,
-        auth_token.is_some()
+        auth_token.is_some(),
+        meeting_id
     );
 
     // Log first transcript for debugging
@@ -978,6 +980,7 @@ pub async fn api_save_transcript<R: Runtime>(
         &meeting_title,
         &transcripts_to_save,
         folder_path,
+        meeting_id,
     )
     .await
     {

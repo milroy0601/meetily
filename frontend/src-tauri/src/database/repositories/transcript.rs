@@ -15,17 +15,20 @@ impl TranscriptsRepository {
         meeting_title: &str,
         transcripts: &[TranscriptSegment],
         folder_path: Option<String>,
+        meeting_id: Option<String>,
     ) -> Result<String, SqlxError> {
-        let meeting_id = format!("meeting-{}", Uuid::new_v4());
+        let meeting_id = meeting_id.unwrap_or_else(|| format!("meeting-{}", Uuid::new_v4()));
 
         let mut conn = pool.acquire().await?;
         let mut transaction = conn.begin().await?;
 
         let now = Utc::now();
 
-        // 1. Create the new meeting
+        // 1. Create the new meeting placeholder if not exists, then update it.
+        // This avoids unique key constraint failures if notes were saved during the meeting,
+        // without triggering ON DELETE CASCADE as INSERT OR REPLACE would do.
         let result = sqlx::query(
-            "INSERT INTO meetings (id, title, created_at, updated_at, folder_path) VALUES (?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO meetings (id, title, created_at, updated_at, folder_path) VALUES (?, ?, ?, ?, ?)",
         )
         .bind(&meeting_id)
         .bind(meeting_title)
@@ -36,12 +39,28 @@ impl TranscriptsRepository {
         .await;
 
         if let Err(e) = result {
-            error!("Failed to create meeting '{}': {}", meeting_title, e);
+            error!("Failed to create meeting placeholder '{}': {}", meeting_title, e);
             transaction.rollback().await?;
             return Err(e);
         }
 
-        info!("Successfully created meeting with id: {}", meeting_id);
+        let result = sqlx::query(
+            "UPDATE meetings SET title = ?, updated_at = ?, folder_path = ? WHERE id = ?",
+        )
+        .bind(meeting_title)
+        .bind(now)
+        .bind(&folder_path)
+        .bind(&meeting_id)
+        .execute(&mut *transaction)
+        .await;
+
+        if let Err(e) = result {
+            error!("Failed to update meeting '{}': {}", meeting_title, e);
+            transaction.rollback().await?;
+            return Err(e);
+        }
+
+        info!("Successfully saved meeting with id: {}", meeting_id);
 
         // 2. Save each transcript segment with audio timing fields
         for segment in transcripts {

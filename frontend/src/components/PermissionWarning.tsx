@@ -29,7 +29,7 @@ export function PermissionWarning({
     return null;
   }
 
-  const isMacOS = navigator.userAgent.includes('Mac');
+  const isMacOS = typeof navigator !== 'undefined' ? navigator.userAgent.includes('Mac') : false;
 
   const openMicrophoneSettings = async () => {
     if (isMacOS) {

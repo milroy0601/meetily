@@ -37,6 +37,14 @@ enum Request {
         penalty_last_n: Option<i32>,
         stop_tokens: Option<Vec<String>>,
     },
+    Chat {
+        context: String,
+        question: String,
+        model_path: Option<String>,
+        max_tokens: Option<i32>,
+        context_size: Option<u32>,
+        temperature: Option<f32>,
+    },
     Ping,
     Shutdown,
 }
@@ -45,6 +53,7 @@ enum Request {
 #[serde(tag = "type", rename_all = "snake_case")]
 enum Response {
     Response { text: String, error: Option<String> },
+    ChatResponse { text: String, error: Option<String> },
     Pong,
     Goodbye,
     Error { message: String },
@@ -545,27 +554,89 @@ fn send_response(response: &Response) -> Result<()> {
     Ok(())
 }
 
+fn build_chat_prompt(context: &str, question: &str) -> String {
+    format!(
+        "You are a helpful AI assistant answering questions about a meeting transcript and notes.\n\
+         Use only the following context to answer the question. If the answer cannot be found in the context, say so.\n\
+         Keep your answer concise and focused on the meeting content.\n\
+         Do NOT include any thinking process, reasoning steps, or <think> tags in your response.\n\
+         Answer directly in plain text.\n\n\
+         CONTEXT:\n{}\n\n\
+         QUESTION:\n{}\n\n\
+         ANSWER:",
+        context, question
+    )
+}
+
+/// Check if the given CLI argument is present
+fn has_arg(args: &[String], flag: &str) -> bool {
+    args.iter().any(|a| a == flag)
+}
+
+/// Get the value for a CLI argument (e.g., --mode chat)
+fn get_arg_value(args: &[String], flag: &str) -> Option<String> {
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        if arg == flag {
+            return iter.next().cloned();
+        }
+    }
+    None
+}
+
 fn main() -> Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+
+    // Check for --mode chat
+    let is_chat_mode = get_arg_value(&args, "--mode")
+        .map(|m| m == "chat")
+        .unwrap_or(false);
+
     // Get idle timeout from environment variable (default 5 minutes)
     let idle_timeout_secs = std::env::var("LLAMA_IDLE_TIMEOUT")
         .ok()
         .and_then(|s| s.parse::<u64>().ok())
-        .unwrap_or(300); // 5 minutes default
+        .unwrap_or(300);
+
+    // In chat mode, use a longer default idle timeout (30 minutes)
+    let idle_timeout_secs = if is_chat_mode {
+        std::env::var("LLAMA_CHAT_IDLE_TIMEOUT")
+            .ok()
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(1800) // 30 minutes default for chat
+    } else {
+        idle_timeout_secs
+    };
 
     eprintln!(
-        "🦙 llama-helper starting (idle timeout: {}s)",
+        "🦙 llama-helper starting (mode: {}, idle timeout: {}s)",
+        if is_chat_mode { "chat" } else { "generate" },
         idle_timeout_secs
     );
 
     let mut state = ModelState::new()?;
+
+    // In chat mode, pre-load the model from --model-path argument
+    if is_chat_mode {
+        if let Some(model_path) = get_arg_value(&args, "--model-path") {
+            let path = PathBuf::from(&model_path);
+            let context_size: u32 = get_arg_value(&args, "--context-size")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(4096);
+            eprintln!("📥 Chat mode: pre-loading model from {}", model_path);
+            state.load_model_if_needed(path, context_size)?;
+        } else {
+            eprintln!("⚠️ Chat mode: no --model-path provided, model will be loaded on first request");
+        }
+    }
 
     let stdin = io::stdin();
     let mut stdin_lock = stdin.lock();
     let mut buffer = String::new();
 
     loop {
-        // Check idle timeout
-        if state.seconds_since_activity() > idle_timeout_secs {
+        // Check idle timeout (skip in chat mode if model is loaded and healthy)
+        if !is_chat_mode && state.seconds_since_activity() > idle_timeout_secs {
             eprintln!("💤 Idle timeout reached, shutting down");
             send_response(&Response::Goodbye)?;
             break;
@@ -575,7 +646,6 @@ fn main() -> Result<()> {
         buffer.clear();
         match stdin_lock.read_line(&mut buffer) {
             Ok(0) => {
-                // EOF reached
                 eprintln!("📪 EOF received, shutting down");
                 break;
             }
@@ -615,7 +685,6 @@ fn main() -> Result<()> {
                         );
                         let stop_tokens = stop_tokens.unwrap_or_else(Vec::new);
 
-                        // Load model if path provided
                         if let Some(path_str) = model_path {
                             let path = PathBuf::from(path_str);
                             if let Err(e) = state.load_model_if_needed(path, context_size) {
@@ -627,13 +696,7 @@ fn main() -> Result<()> {
                             }
                         }
 
-                        // Generate response with sampling parameters
-                        match state.generate(
-                            prompt,
-                            max_tokens,
-                            sampling,
-                            stop_tokens,
-                        ) {
+                        match state.generate(prompt, max_tokens, sampling, stop_tokens) {
                             Ok(text) => {
                                 send_response(&Response::Response { text, error: None })?;
                             }
@@ -641,6 +704,54 @@ fn main() -> Result<()> {
                                 send_response(&Response::Response {
                                     text: String::new(),
                                     error: Some(format!("Generation failed: {}", e)),
+                                })?;
+                            }
+                        }
+                    }
+                    Ok(Request::Chat {
+                        context,
+                        question,
+                        model_path,
+                        max_tokens,
+                        context_size,
+                        temperature,
+                    }) => {
+                        let max_tokens = max_tokens.unwrap_or(512);
+                        let ctx_size = context_size.unwrap_or(4096);
+                        let temp = temperature.unwrap_or(0.7);
+
+                        // Load model if path provided (or already loaded)
+                        if let Some(path_str) = model_path {
+                            let path = PathBuf::from(path_str);
+                            if let Err(e) = state.load_model_if_needed(path, ctx_size) {
+                                send_response(&Response::ChatResponse {
+                                    text: String::new(),
+                                    error: Some(format!("Failed to load model: {}", e)),
+                                })?;
+                                continue;
+                            }
+                        }
+
+                        // Build the chat prompt
+                        let prompt = build_chat_prompt(&context, &question);
+                        let sampling = SamplingConfig {
+                            temperature: temp,
+                            top_k: 40,
+                            top_p: 0.95,
+                            presence_penalty: 0.0,
+                            frequency_penalty: 0.0,
+                            repeat_penalty: 1.0,
+                            penalty_last_n: 0,
+                        };
+
+                        match state.generate(prompt, max_tokens, sampling, Vec::new()) {
+                            Ok(text) => {
+                                send_response(&Response::ChatResponse { text, error: None })?;
+                            }
+                            Err(e) => {
+                                send_response(&Response::ChatResponse {
+                                    text: String::new(),
+                                    error: Some(format!("Chat generation failed: {}", e)),
                                 })?;
                             }
                         }

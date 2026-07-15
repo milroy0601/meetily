@@ -365,7 +365,28 @@ export function SummaryPanel({
           />
         </div>
       ) : transcripts?.length > 0 && (
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
+          <style>{`
+            .summary-scroll,
+            .summary-scroll .bn-editor,
+            .summary-scroll .bn-container,
+            .summary-scroll [data-blocknote-editor],
+            .summary-scroll [data-content-editable],
+            .summary-scroll .ProseMirror {
+              overflow-y: visible !important;
+              overflow-x: visible !important;
+              max-height: none !important;
+              max-width: 100% !important;
+              height: auto !important;
+              width: 100% !important;
+              word-wrap: break-word !important;
+              white-space: normal !important;
+            }
+            .summary-scroll .bn-block-content {
+              max-width: 100% !important;
+              width: 100% !important;
+            }
+          `}</style>
           {summaryResponse && (
             <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 max-h-1/3 overflow-y-auto">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
@@ -411,7 +432,7 @@ export function SummaryPanel({
               ) : null}
             </div>
           )}
-          <div className="p-6 w-full">
+          <div className="summary-scroll w-full">
             <BlockNoteSummaryView
               ref={summaryRef}
               summaryData={aiSummary}

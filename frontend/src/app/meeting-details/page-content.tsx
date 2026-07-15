@@ -8,6 +8,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 import { TranscriptPanel } from '@/components/MeetingDetails/TranscriptPanel';
 import { SummaryPanel } from '@/components/MeetingDetails/SummaryPanel';
+import { PostMeetingQA } from '@/components/MeetingDetails/PostMeetingQA';
+import { NotesPanel } from '@/components/MeetingDetails/NotesPanel';
 import { ModelConfig } from '@/components/ModelSettingsModal';
 
 // Custom hooks
@@ -57,6 +59,7 @@ export default function PageContent({
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [isRecording] = useState(false);
   const [summaryResponse] = useState<SummaryResponse | null>(null);
+  const [rightPanelTab, setRightPanelTab] = useState<'summary' | 'qa' | 'notes'>('summary');
 
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
@@ -192,41 +195,91 @@ export default function PageContent({
           meetingFolderPath={meeting.folder_path}
           onRefetchTranscripts={onRefetchTranscripts}
         />
-        <SummaryPanel
-          meeting={meeting}
-          meetingTitle={meetingData.meetingTitle}
-          onTitleChange={meetingData.handleTitleChange}
-          isEditingTitle={meetingData.isEditingTitle}
-          onStartEditTitle={() => meetingData.setIsEditingTitle(true)}
-          onFinishEditTitle={() => meetingData.setIsEditingTitle(false)}
-          isTitleDirty={meetingData.isTitleDirty}
-          summaryRef={meetingData.blockNoteSummaryRef}
-          isSaving={meetingData.isSaving}
-          onSaveAll={meetingData.saveAllChanges}
-          onCopySummary={copyOperations.handleCopySummary}
-          onOpenFolder={meetingOperations.handleOpenMeetingFolder}
-          aiSummary={meetingData.aiSummary}
-          summaryStatus={summaryGeneration.summaryStatus}
-          transcripts={meetingData.transcripts}
-          modelConfig={modelConfig}
-          setModelConfig={setModelConfig}
-          onSaveModelConfig={handleSaveModelConfig}
-          onGenerateSummary={summaryGeneration.handleGenerateSummary}
-          onStopGeneration={summaryGeneration.handleStopGeneration}
-          customPrompt={customPrompt}
-          summaryResponse={summaryResponse}
-          onSaveSummary={meetingData.handleSaveSummary}
-          onSummaryChange={meetingData.handleSummaryChange}
-          onDirtyChange={meetingData.setIsSummaryDirty}
-          summaryError={summaryGeneration.summaryError}
-          onRegenerateSummary={summaryGeneration.handleRegenerateSummary}
-          getSummaryStatusMessage={summaryGeneration.getSummaryStatusMessage}
-          availableTemplates={templates.availableTemplates}
-          selectedTemplate={templates.selectedTemplate}
-          onTemplateSelect={templates.handleTemplateSelection}
-          isModelConfigLoading={false}
-          onOpenModelSettings={handleRegisterModalOpen}
-        />
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 bg-white shrink-0">
+            <button
+              onClick={() => setRightPanelTab('summary')}
+              className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                rightPanelTab === 'summary'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Summary
+            </button>
+            <button
+              onClick={() => setRightPanelTab('notes')}
+              className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                rightPanelTab === 'notes'
+                  ? 'text-yellow-600 border-b-2 border-yellow-600 bg-yellow-50/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Notes
+            </button>
+            <button
+              onClick={() => setRightPanelTab('qa')}
+              className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                rightPanelTab === 'qa'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Q&A
+            </button>
+          </div>
+
+          {/* Panel content */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            {rightPanelTab === 'summary' && (
+              <SummaryPanel
+                meeting={meeting}
+                meetingTitle={meetingData.meetingTitle}
+                onTitleChange={meetingData.handleTitleChange}
+                isEditingTitle={meetingData.isEditingTitle}
+                onStartEditTitle={() => meetingData.setIsEditingTitle(true)}
+                onFinishEditTitle={() => meetingData.setIsEditingTitle(false)}
+                isTitleDirty={meetingData.isTitleDirty}
+                summaryRef={meetingData.blockNoteSummaryRef}
+                isSaving={meetingData.isSaving}
+                onSaveAll={meetingData.saveAllChanges}
+                onCopySummary={copyOperations.handleCopySummary}
+                onOpenFolder={meetingOperations.handleOpenMeetingFolder}
+                aiSummary={meetingData.aiSummary}
+                summaryStatus={summaryGeneration.summaryStatus}
+                transcripts={meetingData.transcripts}
+                modelConfig={modelConfig}
+                setModelConfig={setModelConfig}
+                onSaveModelConfig={handleSaveModelConfig}
+                onGenerateSummary={summaryGeneration.handleGenerateSummary}
+                onStopGeneration={summaryGeneration.handleStopGeneration}
+                customPrompt={customPrompt}
+                summaryResponse={summaryResponse}
+                onSaveSummary={meetingData.handleSaveSummary}
+                onSummaryChange={meetingData.handleSummaryChange}
+                onDirtyChange={meetingData.setIsSummaryDirty}
+                summaryError={summaryGeneration.summaryError}
+                onRegenerateSummary={summaryGeneration.handleRegenerateSummary}
+                getSummaryStatusMessage={summaryGeneration.getSummaryStatusMessage}
+                availableTemplates={templates.availableTemplates}
+                selectedTemplate={templates.selectedTemplate}
+                onTemplateSelect={templates.handleTemplateSelection}
+                isModelConfigLoading={false}
+                onOpenModelSettings={handleRegisterModalOpen}
+              />
+            )}
+            {rightPanelTab === 'notes' && (
+              <NotesPanel meetingId={meeting.id} />
+            )}
+            {rightPanelTab === 'qa' && (
+              <PostMeetingQA
+                meetingId={meeting.id}
+                transcripts={meetingData.transcripts}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </motion.div>
   );

@@ -57,6 +57,7 @@ export function useRecordingStop(
     clearTranscripts,
     meetingTitle,
     markMeetingAsSaved,
+    currentMeetingId,
   } = useTranscripts();
 
   const {
@@ -252,11 +253,14 @@ export function useRecordingStop(
           last_transcript: freshTranscripts.length > 0 ? freshTranscripts[freshTranscripts.length - 1].text.substring(0, 30) + '...' : 'none',
         });
 
+        const existingMeetingId = currentMeetingId || sessionStorage.getItem('indexeddb_current_meeting_id');
+
         try {
           const responseData = await storageService.saveMeeting(
             savedMeetingName || meetingTitle || 'New Meeting',  // PREFER savedMeetingName (backend source)
             freshTranscripts,
-            folderPath
+            folderPath,
+            existingMeetingId
           );
 
           const meetingId = responseData.meeting_id;
@@ -429,6 +433,7 @@ export function useRecordingStop(
     clearTranscripts,
     meetingTitle,
     markMeetingAsSaved,
+    currentMeetingId,
     refetchMeetings,
     setCurrentMeeting,
     setMeetings,

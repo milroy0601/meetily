@@ -1,6 +1,7 @@
 // Built-in AI summary engine module
 // Provides local LLM inference via llama-helper sidecar
 
+pub mod chat_client;
 pub mod client;
 pub mod commands;
 pub mod model_manager;

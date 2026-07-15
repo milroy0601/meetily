@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { RecordingControls } from '@/components/RecordingControls';
 import { useSidebar } from '@/components/Sidebar/SidebarProvider';
 import { usePermissionCheck } from '@/hooks/usePermissionCheck';
@@ -18,6 +17,8 @@ import { useRecordingStart } from '@/hooks/useRecordingStart';
 import { useRecordingStop } from '@/hooks/useRecordingStop';
 import { useTranscriptRecovery } from '@/hooks/useTranscriptRecovery';
 import { TranscriptRecovery } from '@/components/TranscriptRecovery';
+import { MeetingNotesPanel } from './_components/MeetingNotesPanel';
+import { LiveQAPanel } from './_components/LiveQAPanel';
 import { indexedDBService } from '@/services/indexedDBService';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -29,7 +30,7 @@ export default function Home() {
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
 
   // Use contexts for state management
-  const { meetingTitle } = useTranscripts();
+  const { meetingTitle, currentMeetingId } = useTranscripts();
   const { transcriptModelConfig, selectedDevices } = useConfig();
   const recordingState = useRecordingState();
 
@@ -190,58 +191,37 @@ export default function Home() {
   const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="flex flex-col h-screen bg-gray-50"
-    >
-      {/* All Modals supported*/}
-      <SettingsModals
-        modals={modals}
-        messages={messages}
-        onClose={hideModal}
+    <div className="flex flex-col h-screen bg-gray-50">
+      <SettingsModals modals={modals} messages={messages} onClose={hideModal} />
+      <TranscriptRecovery
+        isOpen={showRecoveryDialog} onClose={handleDialogClose}
+        recoverableMeetings={recoverableMeetings} onRecover={handleRecovery}
+        onDelete={deleteRecoverableMeeting} onLoadPreview={loadMeetingTranscripts}
       />
 
-      {/* Recovery Dialog */}
-      <TranscriptRecovery
-        isOpen={showRecoveryDialog}
-        onClose={handleDialogClose}
-        recoverableMeetings={recoverableMeetings}
-        onRecover={handleRecovery}
-        onDelete={deleteRecoverableMeeting}
-        onLoadPreview={loadMeetingTranscripts}
-      />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" style={{ paddingRight: '20rem' }}>
         <TranscriptPanel
           isProcessingStop={isProcessingStop}
           isStopping={isStopping}
           showModal={showModal}
         />
 
-        {/* Recording controls - only show when permissions are granted or already recording and not showing status messages */}
         {(hasMicrophone || isRecording) &&
           status !== RecordingStatus.PROCESSING_TRANSCRIPTS &&
           status !== RecordingStatus.SAVING && (
-            <div className="fixed bottom-12 left-0 right-0 z-10">
-              <div
-                className="flex justify-center pl-8 transition-[margin] duration-300"
-                style={{
-                  marginLeft: sidebarCollapsed ? '4rem' : '16rem'
-                }}
-              >
+            <div className="fixed bottom-12 left-0 z-10" style={{ right: '20rem' }}>
+              <div className="flex justify-center pl-8 transition-[margin] duration-300"
+                style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}>
                 <div className="w-2/3 max-w-[750px] flex justify-center">
                   <div className="bg-white rounded-full shadow-lg flex items-center">
                     <RecordingControls
                       isRecording={recordingState.isRecording}
                       onRecordingStop={(callApi = true) => handleRecordingStop(callApi)}
                       onRecordingStart={handleRecordingStart}
-                      onTranscriptReceived={() => { }} // Not actually used by RecordingControls
+                      onTranscriptReceived={() => {}}
                       onStopInitiated={() => setIsStopping(true)}
                       barHeights={barHeights}
-                      onTranscriptionError={(message) => {
-                        showModal('errorAlert', message);
-                      }}
+                      onTranscriptionError={(msg) => showModal('errorAlert', msg)}
                       isRecordingDisabled={isRecordingDisabled}
                       isParentProcessing={isProcessingStop}
                       selectedDevices={selectedDevices}
@@ -253,13 +233,39 @@ export default function Home() {
             </div>
           )}
 
-        {/* Status Overlays - Processing and Saving */}
         <StatusOverlays
           isProcessing={status === RecordingStatus.PROCESSING_TRANSCRIPTS && !recordingState.isRecording}
           isSaving={status === RecordingStatus.SAVING}
           sidebarCollapsed={sidebarCollapsed}
         />
       </div>
-    </motion.div>
+
+      {/* Right sidebar with Notes & Q&A */}
+      <div className="fixed top-0 right-0 w-80 h-full border-l border-gray-200 bg-white z-20 flex flex-col">
+        {recordingState.isRecording && currentMeetingId ? (
+          <>
+            <div className="flex-1 overflow-y-auto">
+              <MeetingNotesPanel meetingId={currentMeetingId} />
+            </div>
+            <div className="border-t border-gray-200 flex-1 overflow-y-auto">
+              <LiveQAPanel />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center flex-1 text-gray-400 p-6 space-y-3">
+            <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+              <svg className="w-7 h-7 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-gray-500">Notes &amp; Q&amp;A</p>
+            <p className="text-xs text-gray-400 text-center leading-relaxed">
+              Start recording to take notes<br />and ask questions.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

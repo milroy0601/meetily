@@ -62,51 +62,10 @@ interface SummaryPanelProps {
   onOpenModelSettings?: (openFn: () => void) => void;
 }
 
-/** Wraps children in a scrollable container that also neutralizes BlockNote's internal scroll capture */
+/** Wraps children in a scrollable container */
 function SummaryScrollContainer({ children }: { children: ReactNode }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const fixAll = () => {
-      const selectors = [
-        '.bn-editor', '.bn-container', '[data-blocknote-editor]',
-        '[data-content-editable]', '.ProseMirror', '[role="textbox"]',
-        '.bn-block-content', '[class*="BlockNote"]', '[class*="blocknote"]',
-      ];
-      for (const sel of selectors) {
-        (el.querySelectorAll(sel) as NodeListOf<HTMLElement>).forEach((e) => {
-          e.style.setProperty('overflow', 'visible', 'important');
-          e.style.setProperty('overflow-y', 'visible', 'important');
-          e.style.setProperty('max-height', 'none', 'important');
-          e.style.setProperty('max-width', '100%', 'important');
-          e.style.setProperty('height', 'auto', 'important');
-          e.style.setProperty('width', '100%', 'important');
-        });
-      }
-      const iframes = el.querySelectorAll('iframe');
-      iframes.forEach((iframe) => {
-        try {
-          const doc = iframe.contentDocument || iframe.contentWindow?.document;
-          if (doc) {
-            doc.body.style.setProperty('overflow', 'visible', 'important');
-            doc.documentElement.style.setProperty('overflow', 'visible', 'important');
-          }
-        } catch { /* cross-origin */ }
-      });
-    };
-
-    // Try at increasing intervals to catch async BlockNote mount
-    fixAll();
-    const timers = [200, 500, 1000, 2000, 4000].map(ms => setTimeout(fixAll, ms));
-
-    return () => timers.forEach(clearTimeout);
-  }, []);
-
   return (
-    <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="flex-1 min-h-0 overflow-y-auto">
       {children}
     </div>
   );
@@ -417,7 +376,7 @@ export function SummaryPanel({
       ) : transcripts?.length > 0 && (
         <SummaryScrollContainer>
           {summaryResponse && (
-            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 max-h-1/3 overflow-y-auto">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-lg shadow-sm">

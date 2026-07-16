@@ -77,7 +77,9 @@
 }
 
 @layer base {
-  :root {
+  /* ── Light Theme (default) ─────────────────────────────────── */
+  :root,
+  .theme-light {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -103,9 +105,22 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    /* Theme extras */
+    --theme-glow: none;
+    --theme-scanlines: none;
+    --theme-surface-gradient: none;
+    --theme-font-override: inherit;
+    --theme-shadow-color: 0 0% 0%;
+    --theme-shadow-strength: 0.05;
+    --theme-border-glow: none;
+    --theme-card-border-style: solid;
+    --theme-button-gradient: none;
+    --theme-input-bg: inherit;
   }
 
-  .dark {
+  /* ── Dark Theme ────────────────────────────────────────────── */
+  .dark,
+  .theme-dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -130,6 +145,97 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    /* Theme extras */
+    --theme-glow: none;
+    --theme-scanlines: none;
+    --theme-surface-gradient: none;
+    --theme-font-override: inherit;
+    --theme-shadow-color: 0 0% 0%;
+    --theme-shadow-strength: 0.2;
+    --theme-border-glow: none;
+    --theme-card-border-style: solid;
+    --theme-button-gradient: none;
+    --theme-input-bg: inherit;
+  }
+
+  /* ── Cyberpunk Theme ───────────────────────────────────────── */
+  .theme-cyberpunk {
+    --background: 260 40% 4%;
+    --foreground: 180 100% 70%;
+    --card: 260 35% 7%;
+    --card-foreground: 180 100% 75%;
+    --popover: 260 35% 8%;
+    --popover-foreground: 180 100% 75%;
+    --primary: 320 100% 60%;
+    --primary-foreground: 260 20% 5%;
+    --secondary: 260 30% 14%;
+    --secondary-foreground: 60 100% 60%;
+    --muted: 260 30% 12%;
+    --muted-foreground: 180 60% 50%;
+    --accent: 180 100% 50%;
+    --accent-foreground: 260 40% 4%;
+    --destructive: 0 90% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 320 100% 50%;
+    --input: 260 30% 16%;
+    --ring: 180 100% 50%;
+    --radius: 0.25rem;
+    --chart-1: 320 100% 60%;
+    --chart-2: 180 100% 50%;
+    --chart-3: 60 100% 55%;
+    --chart-4: 280 90% 60%;
+    --chart-5: 0 90% 60%;
+    /* Theme extras */
+    --theme-glow: 0 0 10px hsl(320 100% 60% / 0.4), 0 0 20px hsl(180 100% 50% / 0.2);
+    --theme-scanlines: repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(260 40% 4% / 0.15) 2px, hsl(260 40% 4% / 0.15) 4px);
+    --theme-surface-gradient: linear-gradient(135deg, hsl(260 35% 7%), hsl(260 25% 10%));
+    --theme-font-override: inherit;
+    --theme-shadow-color: 320 100% 60%;
+    --theme-shadow-strength: 0.3;
+    --theme-border-glow: 0 0 6px hsl(var(--border) / 0.5);
+    --theme-card-border-style: solid;
+    --theme-button-gradient: linear-gradient(135deg, hsl(320 100% 60%), hsl(280 90% 55%));
+    --theme-input-bg: hsl(260 30% 10%);
+  }
+
+  /* ── Retro Typewriter Theme ────────────────────────────────── */
+  .theme-retro {
+    --background: 38 40% 92%;
+    --foreground: 30 25% 18%;
+    --card: 38 35% 96%;
+    --card-foreground: 30 25% 18%;
+    --popover: 38 35% 96%;
+    --popover-foreground: 30 25% 18%;
+    --primary: 30 25% 20%;
+    --primary-foreground: 38 40% 94%;
+    --secondary: 35 20% 82%;
+    --secondary-foreground: 30 25% 20%;
+    --muted: 35 20% 84%;
+    --muted-foreground: 30 15% 38%;
+    --accent: 12 60% 45%;
+    --accent-foreground: 38 40% 96%;
+    --destructive: 0 55% 42%;
+    --destructive-foreground: 38 40% 96%;
+    --border: 30 20% 70%;
+    --input: 38 35% 96%;
+    --ring: 30 25% 25%;
+    --radius: 0.25rem;
+    --chart-1: 30 25% 22%;
+    --chart-2: 12 55% 40%;
+    --chart-3: 25 35% 35%;
+    --chart-4: 20 40% 38%;
+    --chart-5: 10 50% 35%;
+    /* Theme extras */
+    --theme-glow: none;
+    --theme-scanlines: none;
+    --theme-surface-gradient: linear-gradient(180deg, hsl(38 35% 96%), hsl(38 30% 90%));
+    --theme-font-override: 'Courier New', 'IBM Plex Mono', 'SF Mono', monospace;
+    --theme-shadow-color: 30 25% 15%;
+    --theme-shadow-strength: 0.08;
+    --theme-border-glow: none;
+    --theme-card-border-style: double;
+    --theme-button-gradient: none;
+    --theme-input-bg: hsl(38 35% 98%);
   }
 }
 
@@ -211,4 +317,126 @@
   [data-node-type] {
     overflow: visible !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Theme-specific visual effects
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Force theme colors on common elements that may be missed ── */
+.theme-dark select,
+.theme-dark input[type="text"],
+.theme-dark input[type="search"],
+.theme-dark textarea,
+.theme-cyberpunk select,
+.theme-cyberpunk input[type="text"],
+.theme-cyberpunk input[type="search"],
+.theme-cyberpunk textarea,
+.theme-retro select,
+.theme-retro input[type="text"],
+.theme-retro input[type="search"],
+.theme-retro textarea {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+/* ── Dialog/modal backgrounds ────────────────────────────────── */
+.theme-dark [role="dialog"],
+.theme-cyberpunk [role="dialog"] {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+/* ── Cyberpunk scanline overlay ─────────────────────────────── */
+.theme-cyberpunk body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+/* ── Cyberpunk neon glow on interactive elements ────────────── */
+.theme-cyberpunk .bn-container,
+.theme-cyberpunk .ProseMirror {
+  text-shadow: 0 0 1px hsl(180 100% 70% / 0.3);
+}
+
+.theme-cyberpunk button:not([class*='ghost']):hover {
+  box-shadow: 0 0 12px hsl(320 100% 60% / 0.5);
+}
+
+/* ── Cyberpunk cards get an inner glow border ───────────────── */
+.theme-cyberpunk .border {
+  box-shadow: 0 0 6px hsl(320 100% 50% / 0.3), inset 0 0 6px hsl(180 100% 50% / 0.1);
+}
+
+/* ── Cyberpunk scrollbar ────────────────────────────────────── */
+.theme-cyberpunk .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(320 100% 60% / 0.5);
+  border-radius: 3px;
+}
+.theme-cyberpunk .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(320 100% 60% / 0.8);
+}
+.theme-cyberpunk .custom-scrollbar {
+  scrollbar-color: hsl(320 100% 60% / 0.4) transparent;
+}
+
+/* ── Retro paper texture on cards ───────────────────────────── */
+.theme-retro .border {
+  border-style: double !important;
+  border-width: 3px !important;
+}
+
+.theme-retro .shadow {
+  box-shadow: 2px 2px 0 hsl(30 25% 15% / 0.1) !important;
+}
+
+/* ── Retro underline headings ───────────────────────────────── */
+.theme-retro h1,
+.theme-retro h2,
+.theme-retro h3,
+.theme-retro h4 {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: hsl(30 20% 70%);
+}
+
+/* ── Retro monospace feel ───────────────────────────────────── */
+.theme-retro {
+  font-family: var(--theme-font-override);
+}
+.theme-retro code,
+.theme-retro pre {
+  font-family: var(--theme-font-override);
+}
+
+/* ── Retro scrollbar ────────────────────────────────────────── */
+.theme-retro .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(30 15% 60%);
+  border-radius: 3px;
+}
+.theme-retro .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(30 15% 40%);
+}
+.theme-retro .custom-scrollbar {
+  scrollbar-color: hsl(30 15% 55%) transparent;
+}
+
+/* ── Theme transition (smooth color switching) ──────────────── */
+html {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+html * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }

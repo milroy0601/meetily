@@ -195,7 +195,7 @@ export function PostMeetingQA({ meetingId, transcripts }: PostMeetingQAProps) {
                   onClick={() => switchSession(s.session_id)}
                   className={`text-xs px-2 py-1 rounded ${
                     s.session_id === sessionId
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-accent text-accent-foreground'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >

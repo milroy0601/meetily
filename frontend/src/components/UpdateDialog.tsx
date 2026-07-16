@@ -234,8 +234,8 @@ export function UpdateDialog({ open, onOpenChange, updateInfo }: UpdateDialogPro
               </div>
 
               {updateInfo.body && (
-                <div className="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <div className="bg-muted rounded-lg p-3 max-h-40 overflow-y-auto">
+                  <p className="text-sm whitespace-pre-wrap text-foreground">
                     {updateInfo.body}
                   </p>
                 </div>

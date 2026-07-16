@@ -80,7 +80,7 @@ export function MeetingNotesPanel({ meetingId }: MeetingNotesPanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200">
+      <div className="sticky top-0 z-10 bg-card px-4 py-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <StickyNote className="w-4 h-4 text-yellow-600" />
@@ -97,7 +97,7 @@ export function MeetingNotesPanel({ meetingId }: MeetingNotesPanelProps) {
         </div>
       </div>
       <textarea
-        className="flex-1 w-full p-4 text-sm border-0 resize-none focus:outline-none focus:ring-0"
+        className="flex-1 w-full p-4 text-sm border-0 resize-none focus:outline-none focus:ring-0 bg-card text-foreground placeholder:text-muted-foreground"
         placeholder="Write your meeting notes in markdown..."
         value={markdown}
         onChange={handleChange}

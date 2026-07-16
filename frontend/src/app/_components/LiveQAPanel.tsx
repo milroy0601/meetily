@@ -174,7 +174,7 @@ export function LiveQAPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200">
+      <div className="sticky top-0 z-10 bg-card px-4 py-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <MessageCircle className="w-4 h-4 text-blue-600" />
@@ -200,8 +200,8 @@ export function LiveQAPanel() {
                   onClick={() => switchSession(s.session_id)}
                   className={`text-xs px-2 py-0.5 rounded ${
                     s.session_id === sessionId
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-secondary'
                   }`}
                 >
                   Chat ({s.message_count})

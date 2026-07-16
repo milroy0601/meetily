@@ -191,7 +191,7 @@ export default function Home() {
   const isProcessingStop = status === RecordingStatus.PROCESSING_TRANSCRIPTS || isProcessing;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-background">
       <SettingsModals modals={modals} messages={messages} onClose={hideModal} />
       <TranscriptRecovery
         isOpen={showRecoveryDialog} onClose={handleDialogClose}
@@ -213,7 +213,7 @@ export default function Home() {
               <div className="flex justify-center pl-8 transition-[margin] duration-300"
                 style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}>
                 <div className="w-2/3 max-w-[750px] flex justify-center">
-                  <div className="bg-white rounded-full shadow-lg flex items-center">
+                  <div className="bg-card rounded-full shadow-lg flex items-center">
                     <RecordingControls
                       isRecording={recordingState.isRecording}
                       onRecordingStop={(callApi = true) => handleRecordingStop(callApi)}
@@ -241,26 +241,26 @@ export default function Home() {
       </div>
 
       {/* Right sidebar with Notes & Q&A */}
-      <div className="fixed top-0 right-0 w-80 h-full border-l border-gray-200 bg-white z-20 flex flex-col">
+      <div className="fixed top-0 right-0 w-80 h-full border-l bg-card z-20 flex flex-col">
         {recordingState.isRecording && currentMeetingId ? (
           <>
             <div className="flex-1 overflow-y-auto">
               <MeetingNotesPanel meetingId={currentMeetingId} />
             </div>
-            <div className="border-t border-gray-200 flex-1 overflow-y-auto">
+            <div className="border-t flex-1 overflow-y-auto">
               <LiveQAPanel />
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 text-gray-400 p-6 space-y-3">
-            <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground p-6 space-y-3">
+            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center">
               <svg className="w-7 h-7 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <p className="text-sm font-medium text-gray-500">Notes &amp; Q&amp;A</p>
-            <p className="text-xs text-gray-400 text-center leading-relaxed">
+            <p className="text-sm font-medium text-muted-foreground">Notes &amp; Q&amp;A</p>
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
               Start recording to take notes<br />and ask questions.
             </p>
           </div>

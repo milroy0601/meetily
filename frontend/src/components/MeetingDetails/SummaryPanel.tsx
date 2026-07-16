@@ -80,16 +80,12 @@ function SummaryScrollContainer({ children }: { children: ReactNode }) {
         (el.querySelectorAll(sel) as NodeListOf<HTMLElement>).forEach((e) => {
           e.style.setProperty('overflow', 'visible', 'important');
           e.style.setProperty('overflow-y', 'visible', 'important');
-          e.style.setProperty('overflow-x', 'visible', 'important');
           e.style.setProperty('max-height', 'none', 'important');
           e.style.setProperty('max-width', '100%', 'important');
           e.style.setProperty('height', 'auto', 'important');
           e.style.setProperty('width', '100%', 'important');
-          e.style.setProperty('word-wrap', 'break-word', 'important');
-          e.style.setProperty('white-space', 'normal', 'important');
         });
       }
-      // Also fix any iframe or shadow root content
       const iframes = el.querySelectorAll('iframe');
       iframes.forEach((iframe) => {
         try {
@@ -102,25 +98,11 @@ function SummaryScrollContainer({ children }: { children: ReactNode }) {
       });
     };
 
-    // Try periodically
+    // Try at increasing intervals to catch async BlockNote mount
     fixAll();
-    const t1 = setTimeout(fixAll, 100);
-    const t2 = setTimeout(fixAll, 300);
-    const t3 = setTimeout(fixAll, 700);
-    const t4 = setTimeout(fixAll, 1500);
-    const t5 = setTimeout(fixAll, 3000);
+    const timers = [200, 500, 1000, 2000, 4000].map(ms => setTimeout(fixAll, ms));
 
-    // Also observe DOM mutations for late-rendering
-    let obs: MutationObserver | null = null;
-    try {
-      obs = new MutationObserver(() => fixAll());
-      obs.observe(el, { childList: true, subtree: true });
-    } catch { /* ignore */ }
-
-    return () => {
-      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5);
-      obs?.disconnect();
-    };
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   return (

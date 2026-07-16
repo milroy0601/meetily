@@ -70,44 +70,61 @@ function SummaryScrollContainer({ children }: { children: ReactNode }) {
     const el = containerRef.current;
     if (!el) return;
 
-    // BlockNote mounts asynchronously; poll until we find its internal containers
-    const fix = () => {
+    const fixAll = () => {
       const selectors = [
         '.bn-editor', '.bn-container', '[data-blocknote-editor]',
         '[data-content-editable]', '.ProseMirror', '[role="textbox"]',
+        '.bn-block-content', '[class*="BlockNote"]', '[class*="blocknote"]',
       ];
-      let found = false;
       for (const sel of selectors) {
-        el.querySelectorAll(sel).forEach((node) => {
-          const e = node as HTMLElement;
-          e.style.overflow = 'visible';
-          e.style.overflowY = 'visible';
-          e.style.maxHeight = 'none';
-          e.style.height = 'auto';
-          found = true;
+        (el.querySelectorAll(sel) as NodeListOf<HTMLElement>).forEach((e) => {
+          e.style.setProperty('overflow', 'visible', 'important');
+          e.style.setProperty('overflow-y', 'visible', 'important');
+          e.style.setProperty('overflow-x', 'visible', 'important');
+          e.style.setProperty('max-height', 'none', 'important');
+          e.style.setProperty('max-width', '100%', 'important');
+          e.style.setProperty('height', 'auto', 'important');
+          e.style.setProperty('width', '100%', 'important');
+          e.style.setProperty('word-wrap', 'break-word', 'important');
+          e.style.setProperty('white-space', 'normal', 'important');
         });
       }
-      // Also ensure wrapper itself doesn't have overflow issues
-      const wrapper = el.querySelector('.summary-scroll') as HTMLElement | null;
-      if (wrapper) {
-        wrapper.style.overflow = 'visible';
-        wrapper.style.overflowY = 'visible';
-        wrapper.style.maxHeight = 'none';
-        wrapper.style.height = 'auto';
-      }
-      return found;
+      // Also fix any iframe or shadow root content
+      const iframes = el.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (doc) {
+            doc.body.style.setProperty('overflow', 'visible', 'important');
+            doc.documentElement.style.setProperty('overflow', 'visible', 'important');
+          }
+        } catch { /* cross-origin */ }
+      });
     };
 
-    // Try immediately, then retry a few times for async BlockNote mount
-    if (fix()) return;
-    const t1 = setTimeout(() => { if (fix()) return; }, 200);
-    const t2 = setTimeout(() => { fix(); }, 500);
-    const t3 = setTimeout(() => { fix(); }, 1000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    // Try periodically
+    fixAll();
+    const t1 = setTimeout(fixAll, 100);
+    const t2 = setTimeout(fixAll, 300);
+    const t3 = setTimeout(fixAll, 700);
+    const t4 = setTimeout(fixAll, 1500);
+    const t5 = setTimeout(fixAll, 3000);
+
+    // Also observe DOM mutations for late-rendering
+    let obs: MutationObserver | null = null;
+    try {
+      obs = new MutationObserver(() => fixAll());
+      obs.observe(el, { childList: true, subtree: true });
+    } catch { /* ignore */ }
+
+    return () => {
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5);
+      obs?.disconnect();
+    };
   }, []);
 
   return (
-    <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto">
+    <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {children}
     </div>
   );

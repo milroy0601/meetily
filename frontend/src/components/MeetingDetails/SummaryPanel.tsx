@@ -8,7 +8,7 @@ import { ModelConfig } from '@/components/ModelSettingsModal';
 import { SummaryGeneratorButtonGroup } from './SummaryGeneratorButtonGroup';
 import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
 import Analytics from '@/lib/analytics';
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { useEffect, useRef, useState, RefObject, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Languages, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,57 @@ interface SummaryPanelProps {
   onTemplateSelect: (templateId: string, templateName: string) => void;
   isModelConfigLoading?: boolean;
   onOpenModelSettings?: (openFn: () => void) => void;
+}
+
+/** Wraps children in a scrollable container that also neutralizes BlockNote's internal scroll capture */
+function SummaryScrollContainer({ children }: { children: ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // BlockNote mounts asynchronously; poll until we find its internal containers
+    const fix = () => {
+      const selectors = [
+        '.bn-editor', '.bn-container', '[data-blocknote-editor]',
+        '[data-content-editable]', '.ProseMirror', '[role="textbox"]',
+      ];
+      let found = false;
+      for (const sel of selectors) {
+        el.querySelectorAll(sel).forEach((node) => {
+          const e = node as HTMLElement;
+          e.style.overflow = 'visible';
+          e.style.overflowY = 'visible';
+          e.style.maxHeight = 'none';
+          e.style.height = 'auto';
+          found = true;
+        });
+      }
+      // Also ensure wrapper itself doesn't have overflow issues
+      const wrapper = el.querySelector('.summary-scroll') as HTMLElement | null;
+      if (wrapper) {
+        wrapper.style.overflow = 'visible';
+        wrapper.style.overflowY = 'visible';
+        wrapper.style.maxHeight = 'none';
+        wrapper.style.height = 'auto';
+      }
+      return found;
+    };
+
+    // Try immediately, then retry a few times for async BlockNote mount
+    if (fix()) return;
+    const t1 = setTimeout(() => { if (fix()) return; }, 200);
+    const t2 = setTimeout(() => { fix(); }, 500);
+    const t3 = setTimeout(() => { fix(); }, 1000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto">
+      {children}
+    </div>
+  );
 }
 
 export function SummaryPanel({
@@ -365,28 +416,7 @@ export function SummaryPanel({
           />
         </div>
       ) : transcripts?.length > 0 && (
-        <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
-          <style>{`
-            .summary-scroll,
-            .summary-scroll .bn-editor,
-            .summary-scroll .bn-container,
-            .summary-scroll [data-blocknote-editor],
-            .summary-scroll [data-content-editable],
-            .summary-scroll .ProseMirror {
-              overflow-y: visible !important;
-              overflow-x: visible !important;
-              max-height: none !important;
-              max-width: 100% !important;
-              height: auto !important;
-              width: 100% !important;
-              word-wrap: break-word !important;
-              white-space: normal !important;
-            }
-            .summary-scroll .bn-block-content {
-              max-width: 100% !important;
-              width: 100% !important;
-            }
-          `}</style>
+        <SummaryScrollContainer>
           {summaryResponse && (
             <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 max-h-1/3 overflow-y-auto">
               <h3 className="text-lg font-semibold mb-2">Meeting Summary</h3>
@@ -460,7 +490,7 @@ export function SummaryPanel({
               <p className="text-sm font-medium">{getSummaryStatusMessage(summaryStatus)}</p>
             </div>
           )}
-        </div>
+        </SummaryScrollContainer>
       )}
     </div>
   );

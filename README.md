@@ -77,7 +77,8 @@ A privacy-first AI meeting assistant that captures, transcribes, and summarizes 
 
 - [🚀 What's New in This Fork](#-whats-new-in-this-fork)
   - [✨ Interactive AI Features](#-interactive-ai-features)
-  - [🙏 Acknowledgments](#-acknowledgments)
+  - [� Known Issues](#-known-issues)
+  - [�🙏 Acknowledgments](#-acknowledgments)
 - [Introduction](#introduction)
 - [Why Meetily?](#why-meetily)
 - [Features](#features)

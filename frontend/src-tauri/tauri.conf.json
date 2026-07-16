@@ -103,7 +103,7 @@
         ],
         "macOS": {
             "entitlements": "entitlements.plist",
-            "signingIdentity": "-",
+            "signingIdentity": "Developer ID Application: Sumudu Auwardt (FCZ9DNWYY7)",
             "hardenedRuntime": true
         },
         "windows": {
